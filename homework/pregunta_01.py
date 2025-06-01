@@ -71,3 +71,44 @@ def pregunta_01():
 
 
     """
+    import os
+    import zipfile
+    import pandas as pd
+
+    zip_path = "files/input.zip"
+    extract_path = "input"
+
+    if not os.path.exists(extract_path):
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(extract_path)
+
+    posible_raiz = os.path.join(extract_path, "train")
+    if not os.path.exists(posible_raiz):
+        extract_path = os.path.join(extract_path, "input")
+
+    def procesar_directorio(ruta_base):
+        frases = []
+        sentimientos = []
+
+        for sentimiento in ["positive", "negative", "neutral"]:
+            carpeta = os.path.join(ruta_base, sentimiento)
+            for archivo in os.listdir(carpeta):
+                ruta_archivo = os.path.join(carpeta, archivo)
+                with open(ruta_archivo, "r", encoding="utf-8") as f:
+                    frases.append(f.read().strip())
+                    sentimientos.append(sentimiento)
+
+        return pd.DataFrame({"phrase": frases, "target": sentimientos})
+
+    df_train = procesar_directorio(os.path.join(extract_path, "train"))
+    df_test = procesar_directorio(os.path.join(extract_path, "test"))
+
+    output_dir = "files/output"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    df_train.to_csv(os.path.join(output_dir, "train_dataset.csv"), index=False)
+    df_test.to_csv(os.path.join(output_dir, "test_dataset.csv"), index=False)
+
+
+    
